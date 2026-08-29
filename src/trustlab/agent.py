@@ -28,6 +28,10 @@ Available actions:
    Inspect the strongest statistical associations between input features
    and the target. This can help identify suspicious or potentially
    leaking features.
+3. AUDIT_SPLIT_OVERLAP
+   Inspect whether validation examples also appear in the training set.
+   This can reveal validation contamination that makes validation scores
+   overly optimistic.
 
 Important:
 - Validation performance may be misleading.
@@ -43,8 +47,20 @@ For TRAIN_MODEL:
   "action": "TRAIN_MODEL",
   "model_name": "logistic_regression" or "random_forest",
   "exclude_features": ["feature_name_1", "feature_name_2"],
+  "validation_strategy": "original" or "remove_train_overlap",
   "reason": "short explanation"
 }
+
+validation_strategy:
+
+- "original":
+  Evaluate using the provided validation set.
+
+- "remove_train_overlap":
+  Remove validation examples whose feature values exactly match
+  training examples before computing validation performance.
+  Use this when split-overlap evidence suggests validation
+  contamination.
 
 - If you exclude features, explicitly name them in exclude_features.
 - Use an empty list if you want to train using all available features.

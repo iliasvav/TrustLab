@@ -8,6 +8,7 @@ class AgentExperiment:
     model_name: str
     features: list[str]
     validation_f1: float
+    validation_strategy: str
 
 
 @dataclass
@@ -39,12 +40,14 @@ class AgentState:
         model_name: str,
         features: list[str],
         validation_f1: float,
+        validation_strategy: str,
     ):
         experiment = AgentExperiment(
             experiment_id=len(self.experiments) + 1,
             model_name=model_name,
             features=features,
             validation_f1=validation_f1,
+            validation_strategy=validation_strategy,
         )
 
         self.experiments.append(experiment)

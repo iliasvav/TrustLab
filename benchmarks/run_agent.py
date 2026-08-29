@@ -5,6 +5,7 @@ import pandas as pd
 from google import genai
 
 from src.trustlab.actions import (
+    execute_split_overlap_audit,
     execute_target_association_audit,
     execute_train_model,
 )
@@ -98,6 +99,10 @@ def main():
                     val=val,
                     model_name=decision["model_name"],
                     features=features,
+                    validation_strategy=decision.get(
+                        "validation_strategy",
+                        "original",
+                    ),
                 )
 
                 print("Observation:")
@@ -120,6 +125,16 @@ def main():
                 state=state,
                 train=train,
                 top_k=decision.get("top_k", 5),
+            )
+
+            print("Observation:")
+            print(result)
+        
+        elif action == "AUDIT_SPLIT_OVERLAP":
+            result = execute_split_overlap_audit(
+                state=state,
+                train=train,
+                val=val,
             )
 
             print("Observation:")

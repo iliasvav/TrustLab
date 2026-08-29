@@ -13,6 +13,7 @@ class ExperimentResult:
     model_name: str
     features: list[str]
     validation_f1: float
+    validation_strategy: str
 
 
 def build_model(model_name: str):
@@ -36,12 +37,39 @@ def build_model(model_name: str):
 
 
 def run_experiment(
-    train: pd.DataFrame,
-    val: pd.DataFrame,
-    model_name: str,
-    features: list[str],
-    target: str = "target",
+    train,
+    val,
+    model_name,
+    features,
+    target="target",
+    validation_strategy="original",
 ) -> ExperimentResult:
+    evaluation_val = val
+
+    if validation_strategy == "remove_train_overlap":
+        train_features = train[features].drop_duplicates()
+
+        marked_val = val.merge(
+            train_features.assign(_in_train=True),
+            how="left",
+            on=features,
+        )
+
+        evaluation_val = marked_val[
+            marked_val["_in_train"].isna()
+        ].drop(columns="_in_train")
+
+        if len(evaluation_val) == 0:
+            raise ValueError(
+                "No validation rows remain after removing "
+                "training overlap."
+            )
+
+    elif validation_strategy != "original":
+        raise ValueError(
+            f"Unknown validation strategy: "
+            f"{validation_strategy}"
+        )
     model = build_model(model_name)
 
     model.fit(
@@ -49,10 +77,11 @@ def run_experiment(
         train[target],
     )
 
-    val_predictions = model.predict(val[features])
-
+    val_predictions = model.predict(
+        evaluation_val[features]
+    )
     validation_f1 = f1_score(
-        val[target],
+        evaluation_val[target],
         val_predictions,
     )
 
@@ -60,4 +89,5 @@ def run_experiment(
         model_name=model_name,
         features=features,
         validation_f1=validation_f1,
+        validation_strategy=validation_strategy,
     )

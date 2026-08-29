@@ -131,3 +131,68 @@ marginal associations or very small validation improvements.
 
 Next, evaluate TrustLab on a qualitatively different data-quality failure
 that cannot be detected using target-association auditing alone.
+
+## v3 - Split-overlap detection and remediation
+
+### Hypothesis
+Detecting validation contamination is not sufficient if the agent cannot
+repair the evaluation procedure. Giving the agent a way to evaluate models
+on validation rows that do not overlap with training data should produce a
+more trustworthy model-selection signal.
+
+### Failure before this change
+The agent detected 40% train-validation overlap but had no remediation tool.
+It therefore chose Logistic Regression because it considered the simpler
+model more robust.
+
+Result:
+- Selected validation F1: 0.826
+- Hidden test F1: 0.810
+
+Meanwhile, the all-feature Random Forest achieved:
+- Contaminated validation F1: 0.948
+- Hidden test F1: 0.913
+
+### Change
+Added:
+- `AUDIT_SPLIT_OVERLAP`
+- `validation_strategy` for model experiments
+- `remove_train_overlap` validation strategy
+- Experiment identity now includes validation strategy
+
+This allows the agent to detect validation contamination and explicitly
+re-evaluate candidate models using only non-overlapping validation examples.
+
+### Result
+The agent detected:
+- 480 overlapping validation examples
+- 1200 total validation examples
+- 40% overlap
+
+It then autonomously selected `remove_train_overlap` for both candidate
+models.
+
+Clean validation results:
+- Logistic Regression: 0.817
+- Random Forest: 0.911
+
+Final selection:
+- Random Forest
+- Clean validation F1: 0.911
+- Hidden test F1: 0.913
+
+### Learning
+The contaminated Random Forest validation score was 0.948, while hidden-test
+performance was 0.913.
+
+After removing train-validation overlap, validation F1 became 0.911, almost
+identical to the hidden-test result.
+
+This suggests that an audit is most useful when paired with a remediation
+mechanism. Warning the agent that a metric is unreliable is weaker than
+giving it a way to construct a more trustworthy metric.
+
+### Decision
+Continue developing TrustLab around the pattern:
+
+detect → remediate → re-evaluate → select
