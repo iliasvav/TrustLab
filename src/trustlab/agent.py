@@ -42,9 +42,12 @@ For TRAIN_MODEL:
 {
   "action": "TRAIN_MODEL",
   "model_name": "logistic_regression" or "random_forest",
-  "use_all_features": true or false,
+  "exclude_features": ["feature_name_1", "feature_name_2"],
   "reason": "short explanation"
 }
+
+- If you exclude features, explicitly name them in exclude_features.
+- Use an empty list if you want to train using all available features.
 
 For AUDIT_TARGET_ASSOCIATIONS:
 {

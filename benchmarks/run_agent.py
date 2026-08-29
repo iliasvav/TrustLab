@@ -1,4 +1,5 @@
 from pathlib import Path
+import argparse
 
 import pandas as pd
 from google import genai
@@ -15,24 +16,31 @@ from src.trustlab.evaluator import evaluate_hidden_test
 from src.trustlab.state import AgentState
 
 
-DATA_DIR = Path("benchmarks/data/leakage_case")
-
-
 def main():
-    train = pd.read_csv(DATA_DIR / "train.csv")
-    val = pd.read_csv(DATA_DIR / "val.csv")
-    test = pd.read_csv(DATA_DIR / "test.csv")
+    parser = argparse.ArgumentParser()
+
+    parser.add_argument(
+        "benchmark",
+        help="Benchmark case to run, for example clean_case or leakage_case",
+    )
+
+    args = parser.parse_args()
+
+    data_dir = Path("benchmarks/data") / args.benchmark
+
+    if not data_dir.exists():
+        raise FileNotFoundError(
+            f"Benchmark does not exist: {data_dir}"
+        )
+    
+    train = pd.read_csv(data_dir / "train.csv")
+    val = pd.read_csv(data_dir / "val.csv")
+    test = pd.read_csv(data_dir / "test.csv")
 
     all_features = [
         column
         for column in train.columns
         if column != "target"
-    ]
-
-    normal_features = [
-        column
-        for column in all_features
-        if column != "feature_10"
     ]
 
     client = genai.Client()
@@ -42,7 +50,7 @@ def main():
         remaining_budget=4,
     )
 
-    print("\nSTARTING TRUSTLAB AGENT\n")
+    print(f"\nSTARTING TRUSTLAB AGENT ON {args.benchmark}\n")
 
     while state.remaining_budget > 0:
         decision = choose_action(
@@ -60,11 +68,28 @@ def main():
         action = decision["action"]
 
         if action == "TRAIN_MODEL":
-            features = (
-                all_features
-                if decision["use_all_features"]
-                else normal_features
+            excluded_features = decision.get(
+                "exclude_features",
+                [],
             )
+
+            invalid_features = [
+                feature
+                for feature in excluded_features
+                if feature not in all_features
+            ]
+
+            if invalid_features:
+                raise ValueError(
+                    f"Agent tried to exclude unknown features: "
+                    f"{invalid_features}"
+                )
+
+            features = [
+                feature
+                for feature in all_features
+                if feature not in excluded_features
+            ]
 
             try:
                 result = execute_train_model(
