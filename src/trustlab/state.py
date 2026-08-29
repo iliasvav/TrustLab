@@ -1,4 +1,5 @@
 from dataclasses import dataclass, field
+from typing import Any
 
 
 @dataclass
@@ -10,10 +11,19 @@ class AgentExperiment:
 
 
 @dataclass
+class ActionRecord:
+    action_id: int
+    action_type: str
+    result: dict[str, Any]
+
+
+@dataclass
 class AgentState:
     total_budget: int
     remaining_budget: int
+
     experiments: list[AgentExperiment] = field(default_factory=list)
+    history: list[ActionRecord] = field(default_factory=list)
 
     def spend(self, cost: int = 1):
         if cost > self.remaining_budget:
@@ -38,3 +48,16 @@ class AgentState:
         )
 
         self.experiments.append(experiment)
+
+    def record_action(
+        self,
+        action_type: str,
+        result: dict[str, Any],
+    ):
+        record = ActionRecord(
+            action_id=len(self.history) + 1,
+            action_type=action_type,
+            result=result,
+        )
+
+        self.history.append(record)

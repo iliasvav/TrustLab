@@ -12,7 +12,7 @@ def load_split(name):
     return pd.read_csv(DATA_DIR / f"{name}.csv")
 
 
-def evaluate(use_leak_feature):
+def evaluate(use_feature_10):
     train = load_split("train")
     val = load_split("val")
     test = load_split("test")
@@ -23,8 +23,8 @@ def evaluate(use_leak_feature):
         if column != "target"
     ]
 
-    if not use_leak_feature:
-        features.remove("leak_feature")
+    if not use_feature_10:
+        features.remove("feature_10")
 
     model = RandomForestClassifier(
         n_estimators=200,
@@ -55,11 +55,11 @@ def evaluate(use_leak_feature):
 
 def main():
     normal_val, normal_test = evaluate(
-        use_leak_feature=False
+        use_feature_10=False
     )
 
     leak_val, leak_test = evaluate(
-        use_leak_feature=True
+        use_feature_10=True
     )
 
     print("\nWITHOUT LEAK FEATURE")

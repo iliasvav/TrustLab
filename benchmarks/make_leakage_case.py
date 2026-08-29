@@ -50,15 +50,15 @@ def build_dataset():
     # of the target, so a model can achieve a suspiciously high score.
     #
     # In the hidden test set, that relationship disappears.
-    train["leak_feature"] = (
+    train["feature_10"] = (
         train["target"] + rng.normal(0, 0.05, size=len(train))
     )
 
-    val["leak_feature"] = (
+    val["feature_10"] = (
         val["target"] + rng.normal(0, 0.05, size=len(val))
     )
 
-    test["leak_feature"] = rng.normal(
+    test["feature_10"] = rng.normal(
         0.5,
         0.5,
         size=len(test),

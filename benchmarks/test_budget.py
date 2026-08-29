@@ -18,7 +18,7 @@ def main():
     normal_features = [
         column
         for column in train.columns
-        if column not in {"target", "leak_feature"}
+        if column not in {"target", "feature_10"}
     ]
 
     all_features = [
