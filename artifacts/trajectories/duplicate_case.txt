@@ -1,0 +1,38 @@
+Direct use of automatic function calling (AFC) in Models.generate_content is not recommended. Instead, we recommend to use AFC in Chat.send_message. Similarly, direct use of AFC in Models.generate_content_stream is not recommended. Instead, we recommend to use AFC in Chat.send_message_stream.
+
+STARTING TRUSTLAB AGENT ON duplicate_case
+
+
+Budget: 4/4
+Decision:
+{'action': 'AUDIT_TARGET_ASSOCIATIONS', 'top_k': 5, 'reason': 'Inspect the strongest statistical associations between features and the target to detect potential data leakage or suspicious features before training.'}
+Observation:
+{'top_associations': [{'feature': 'feature_10', 'correlation': 0.5193549866972453, 'mutual_information': 0.1647757951666191}, {'feature': 'feature_1', 'correlation': 0.26991759110111907, 'mutual_information': 0.045895520202108075}, {'feature': 'feature_7', 'correlation': 0.2611066563406493, 'mutual_information': 0.042505352012165876}, {'feature': 'feature_6', 'correlation': 0.27415754602997816, 'mutual_information': 0.03766504968587081}, {'feature': 'feature_9', 'correlation': -0.0064134379165236245, 'mutual_information': 0.02099116556676983}]}
+
+Budget: 3/4
+Decision:
+{'action': 'AUDIT_SPLIT_OVERLAP', 'reason': 'Check for validation contamination to ensure validation performance is reliable.'}
+Observation:
+{'overlapping_validation_rows': 480, 'validation_rows': 1200, 'overlap_fraction': 0.4}
+
+Budget: 2/4
+Decision:
+{'action': 'TRAIN_MODEL', 'model_name': 'logistic_regression', 'exclude_features': [], 'validation_strategy': 'remove_train_overlap', 'reason': 'Auditing revealed a high validation overlap fraction (40%), indicating contamination. We will train on all features but use remove_train_overlap validation strategy to get an unbiased evaluation.'}
+Observation:
+{'model_name': 'logistic_regression', 'features': ['feature_0', 'feature_1', 'feature_2', 'feature_3', 'feature_4', 'feature_5', 'feature_6', 'feature_7', 'feature_8', 'feature_9', 'feature_10'], 'validation_f1': 0.8170563961485557, 'validation_strategy': 'remove_train_overlap'}
+
+Budget: 1/4
+Decision:
+{'action': 'TRAIN_MODEL', 'model_name': 'random_forest', 'exclude_features': [], 'validation_strategy': 'remove_train_overlap', 'reason': 'Train a robust random forest model using the contamination-free validation strategy to compare against logistic regression.'}
+Observation:
+{'model_name': 'random_forest', 'features': ['feature_0', 'feature_1', 'feature_2', 'feature_3', 'feature_4', 'feature_5', 'feature_6', 'feature_7', 'feature_8', 'feature_9', 'feature_10'], 'validation_f1': 0.9110807113543091, 'validation_strategy': 'remove_train_overlap'}
+
+FINAL AGENT DECISION
+{'experiment_id': 2, 'reason': 'Random forest achieved a superior validation F1 score of 0.911 under the remove_train_overlap strategy, which properly controlled for the 40% validation contamination detected during auditing.'}
+
+FINAL RESULT
+Chosen experiment: #2
+Model: random_forest
+Features: 11
+Validation F1: 0.911
+Hidden test F1: 0.913

@@ -1,0 +1,38 @@
+Direct use of automatic function calling (AFC) in Models.generate_content is not recommended. Instead, we recommend to use AFC in Chat.send_message. Similarly, direct use of AFC in Models.generate_content_stream is not recommended. Instead, we recommend to use AFC in Chat.send_message_stream.
+
+STARTING TRUSTLAB AGENT ON leakage_case
+
+
+Budget: 4/4
+Decision:
+{'action': 'AUDIT_TARGET_ASSOCIATIONS', 'top_k': 5, 'reason': 'Inspect the strongest statistical associations between features and the target to check for potential data leakage or suspicious predictive features before training models.'}
+Observation:
+{'top_associations': [{'feature': 'feature_10', 'correlation': 0.9950584845868524, 'mutual_information': 0.6932822307095025}, {'feature': 'feature_7', 'correlation': 0.5078660053265991, 'mutual_information': 0.163046681532381}, {'feature': 'feature_8', 'correlation': 0.47395151583916495, 'mutual_information': 0.122031253500968}, {'feature': 'feature_9', 'correlation': 0.37602618227243323, 'mutual_information': 0.08959005502640727}, {'feature': 'feature_4', 'correlation': 0.3362637438099583, 'mutual_information': 0.07435834840135724}]}
+
+Budget: 3/4
+Decision:
+{'action': 'AUDIT_SPLIT_OVERLAP', 'reason': 'feature_10 has an extremely high correlation (0.995) with the target, which strongly suggests data leakage or feature contamination. Before dropping it or training, I need to check for split overlap and data leakage.'}
+Observation:
+{'overlapping_validation_rows': 0, 'validation_rows': 1200, 'overlap_fraction': 0.0}
+
+Budget: 2/4
+Decision:
+{'action': 'TRAIN_MODEL', 'model_name': 'logistic_regression', 'exclude_features': ['feature_10'], 'validation_strategy': 'original', 'reason': 'feature_10 shows an extremely suspicious near-perfect correlation (0.995) with the target, indicating potential data leakage. We exclude it to prevent overfitting and train a reliable model.'}
+Observation:
+{'model_name': 'logistic_regression', 'features': ['feature_0', 'feature_1', 'feature_2', 'feature_3', 'feature_4', 'feature_5', 'feature_6', 'feature_7', 'feature_8', 'feature_9'], 'validation_f1': 0.793305439330544, 'validation_strategy': 'original'}
+
+Budget: 1/4
+Decision:
+{'action': 'TRAIN_MODEL', 'model_name': 'random_forest', 'exclude_features': ['feature_10'], 'validation_strategy': 'original', 'reason': 'Feature 10 has a near-perfect correlation with the target indicating data leakage. I will train a random forest model excluding feature 10 to check generalization performance without the leaked feature.'}
+Observation:
+{'model_name': 'random_forest', 'features': ['feature_0', 'feature_1', 'feature_2', 'feature_3', 'feature_4', 'feature_5', 'feature_6', 'feature_7', 'feature_8', 'feature_9'], 'validation_f1': 0.9228215767634855, 'validation_strategy': 'original'}
+
+FINAL AGENT DECISION
+{'experiment_id': 2, 'reason': 'The experimental budget is exhausted, and experiment 2 (random forest) achieved a strong validation score without data leakage (feature_10 was excluded or not used, and no train overlap was found).'}
+
+FINAL RESULT
+Chosen experiment: #2
+Model: random_forest
+Features: 10
+Validation F1: 0.923
+Hidden test F1: 0.918
