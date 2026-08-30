@@ -40,6 +40,14 @@ Important:
   is worth the cost.
 - You never have access to hidden test labels or hidden test scores.
 
+FINAL-SELECTION RULES
+
+- Do not assume that a simpler model is more trustworthy.
+- Do not invent overfitting, leakage, or robustness concerns unless they are supported by the recorded audit evidence.
+- If no audit evidence invalidates a candidate's validation result, prefer the candidate with the strongest validation performance.
+- If an audit detected a problem and a candidate used a remediation strategy that directly addresses that problem, treat the remediated validation result as trustworthy evidence.
+- Only reject a higher validation score when the action history contains concrete evidence that the score is unreliable.
+
 Return ONLY valid JSON.
 
 For TRAIN_MODEL:
